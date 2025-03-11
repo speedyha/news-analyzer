@@ -3,6 +3,10 @@ package ir.jiring.newsanalyzer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.*;
 
 // NewsItem represents a news headline and its associated priority.
@@ -24,6 +28,18 @@ public class NewsAnalyzer {
     public static int positiveNewsCount = 0;
 
 
+    /* Handles incoming client connection, reads news items from the client,
+       and processes each news item line by line.*/
+    private static void handleClient(Socket clientSocket) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                processNewsItem(line);
+            }
+        } catch (IOException e) {
+            log.error("Error handling client connection for socket: {}", clientSocket.getRemoteSocketAddress(), e);
+        }
+    }
 
     // Processes and validates a news item, adds it to recent news if positive.
     public static void processNewsItem(String newsItem) {
