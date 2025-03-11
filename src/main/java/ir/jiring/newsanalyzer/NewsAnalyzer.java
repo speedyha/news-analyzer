@@ -20,7 +20,7 @@ class NewsItem {
 public class NewsAnalyzer {
     private static final Set<String> POSITIVE_WORDS = new HashSet<>(Arrays.asList("up", "rise", "good", "success", "high"));
     private static final Logger log = LoggerFactory.getLogger(NewsAnalyzer.class);
-    public static final List<NewsItem> recentNews = new ArrayList<>();
+    static final List<NewsItem> recentNews = new ArrayList<>();
     public static int positiveNewsCount = 0;
 
 
@@ -56,4 +56,28 @@ public class NewsAnalyzer {
         long positiveWordCount = Arrays.stream(words).filter(POSITIVE_WORDS::contains).count();
         return positiveWordCount > words.length / 2;
     }
+
+    /* Displays the count of positive news in the last 10 seconds,
+       logs the top 3 highest priority positive news, and resets the news data.*/
+    public static void displaySummary() {
+        log.info("Positive news in the last 10 seconds: {}", positiveNewsCount);
+
+        recentNews.sort((a, b) -> Integer.compare(b.priority, a.priority));
+        List<NewsItem> topNewsList = recentNews.subList(0, Math.min(3, recentNews.size()));
+
+        log.info("Top 3 highest priority positive news:");
+        for (int i = 0; i < 3; i++) {
+            if (i < topNewsList.size()) {
+                NewsItem news = topNewsList.get(i);
+                log.info("- {} (Priority: {})", news.headline, news.priority);
+            } else {
+                log.info("- No more positive news");
+            }
+        }
+
+        recentNews.clear();
+        positiveNewsCount = 0;
+    }
+
+
 }
