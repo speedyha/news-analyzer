@@ -43,4 +43,19 @@ public class NewsAnalyzerTest {
         assertEquals(0, NewsAnalyzer.positiveNewsCount);
         assertTrue(NewsAnalyzer.recentNews.isEmpty());
     }
+
+// Tests the displaySummary method to ensure it correctly handles displaying and resetting the summary after processing news items.
+    @Test
+    public void testDisplaySummary() {
+        String newsItem1 = "rise good failure  | 5";
+        String newsItem2 = "bad down up | 3";
+        NewsAnalyzer.processNewsItem(newsItem1);
+        NewsAnalyzer.processNewsItem(newsItem2);
+
+        NewsAnalyzer.displaySummary();
+
+        assertEquals(0, NewsAnalyzer.positiveNewsCount);
+        assertTrue(NewsAnalyzer.recentNews.isEmpty());
+    }
+
 }
