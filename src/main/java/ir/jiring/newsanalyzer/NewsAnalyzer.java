@@ -6,8 +6,13 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 // NewsItem represents a news headline and its associated priority.
 class NewsItem {
@@ -22,10 +27,38 @@ class NewsItem {
 
 
 public class NewsAnalyzer {
+
     private static final Set<String> POSITIVE_WORDS = new HashSet<>(Arrays.asList("up", "rise", "good", "success", "high"));
     private static final Logger log = LoggerFactory.getLogger(NewsAnalyzer.class);
     static final List<NewsItem> recentNews = new ArrayList<>();
     public static int positiveNewsCount = 0;
+    private static final int PORT = 1234;
+
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static final ExecutorService executorService = Executors.newCachedThreadPool();
+
+
+
+    public static void main(String[] args) {
+        scheduler.scheduleAtFixedRate(NewsAnalyzer::displaySummary, 10, 10, TimeUnit.SECONDS);
+
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            log.info("NewsAnalyzer is listening on port {}", PORT);
+
+            while (true) {
+                try {
+                    Socket clientSocket = serverSocket.accept();
+                    executorService.submit(() -> handleClient(clientSocket));
+                } catch (IOException e) {
+                    log.error("Error accepting client connection", e);
+                }
+            }
+        } catch (IOException e) {
+            log.error("Error occurred", e);
+        } finally {
+            shutdownExecutors();
+        }
+    }
 
 
     /* Handles incoming client connection, reads news items from the client,
@@ -93,6 +126,11 @@ public class NewsAnalyzer {
 
         recentNews.clear();
         positiveNewsCount = 0;
+    }
+
+    private static void shutdownExecutors() {
+        executorService.shutdown();
+        scheduler.shutdown();
     }
 
 
